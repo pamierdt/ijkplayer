@@ -3218,6 +3218,8 @@ static int read_thread(void *arg)
     int video_stream_count = 0;
     int h264_stream_count = 0;
     int first_h264_stream = -1;
+    int first_h265_stream = -1; //edit 
+
     for (i = 0; i < ic->nb_streams; i++) {
         AVStream *st = ic->streams[i];
         enum AVMediaType type = st->codecpar->codec_type;
@@ -3236,12 +3238,29 @@ static int read_thread(void *arg)
                 if (first_h264_stream < 0)
                     first_h264_stream = i;
             }
+            // // edit--------------------------
+            if(codec_id == AV_CODEC_ID_HEVC) { 
+                if(first_h265_stream<0) {
+                    first_h265_stream = i;
+                }
+            }
+            //--------------edit------------------   
         }
     }
     if (video_stream_count > 1 && st_index[AVMEDIA_TYPE_VIDEO] < 0) {
-        st_index[AVMEDIA_TYPE_VIDEO] = first_h264_stream;
-        av_log(NULL, AV_LOG_WARNING, "multiple video stream found, prefer first h264 stream: %d\n", first_h264_stream);
+        if(first_h265_stream >=0) {  
+            //edit 
+            st_index[AVMEDIA_TYPE_VIDEO] = first_h265_stream;
+            av_log(NULL, 16  , "multiple video stream found, prefer first h265 stream: %d\n", first_h264_stream);
+            //edit 
+        } else {
+            //old
+            st_index[AVMEDIA_TYPE_VIDEO] = first_h264_stream;
+            av_log(NULL, AV_LOG_WARNING, "multiple video stream found, prefer first h264 stream: %d\n", first_h264_stream);
+            //old
+        } 
     }
+    
     if (!ffp->video_disable)
         st_index[AVMEDIA_TYPE_VIDEO] =
             av_find_best_stream(ic, AVMEDIA_TYPE_VIDEO,
